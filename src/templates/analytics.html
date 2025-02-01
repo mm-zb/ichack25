@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Game Analytics</title>
+    <style>
+        .game-section {
+            margin: 2rem 0;
+            padding: 1.5rem;
+            background: #f8f9fa;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        .chart-img {
+            width: 100%;
+            max-width: 800px;
+            height: auto;
+            border: 1px solid #dee2e6;
+            border-radius: 4px;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>Game Analytics</h1>
+        <h2>Total Points: {{ total_points }}</h2>
+    </div>
+
+    {% for game_id in [1, 2, 3] %}
+    <div class="game-section">
+        <h2>Game {{ game_id }} History</h2>
+        <img src="{{ url_for('game_plot', game_type=game_id) }}" 
+             alt="Game {{ game_id }} History Chart">
+    </div>
+    {% endfor %}
+
+    <a href="{{ url_for('student_dashboard') }}">Back to Dashboard</a>
+</body>
+</html>

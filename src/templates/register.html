@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Register</title>
+    <style>
+        body { font-family: Arial, sans-serif; max-width: 300px; margin: 50px auto; }
+        form { display: flex; flex-direction: column; gap: 10px; }
+        input, select { padding: 8px; margin-bottom: 10px; }
+        button { padding: 10px; background-color: #3498db; color: white; border: none; }
+        #teacher-select { display: none; margin-top: 10px; }
+        a { display: block; text-align: center; margin-top: 15px; }
+    </style>
+    <script>
+        function toggleTeacherSelect() {
+            const role = document.querySelector('select[name="role"]').value;
+            const teacherSelect = document.getElementById('teacher-select');
+            teacherSelect.style.display = role === 'student' ? 'block' : 'none';
+        }
+    </script>
+</head>
+<body>
+    <h2>Register</h2>
+    <form method="POST">
+        <input type="text" name="username" placeholder="Username" required>
+        <input type="password" name="password" placeholder="Password" required>
+        
+        <select name="role" required onchange="toggleTeacherSelect()">
+            <option value="">Select Role</option>
+            <option value="teacher">Teacher</option>
+            <option value="student">Student</option>
+        </select>
+
+        <div id="teacher-select">
+            <select name="teacher_id" required>
+                <option value="">Select Teacher</option>
+                {% for teacher in teachers %}
+                <option value="{{ teacher.id }}">{{ teacher.username }}</option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <button type="submit">Register</button>
+    </form>
+    <a href="{{ url_for('login') }}">Already have an account? Login here</a>
+</body>
+</html>

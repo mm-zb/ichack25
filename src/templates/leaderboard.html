@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Class Leaderboard</title>
+    <style>
+        body { font-family: 'Arial', sans-serif; margin: 40px; }
+        h1 { color: #2c3e50; border-bottom: 2px solid #3498db; padding-bottom: 10px; }
+        .leaderboard { margin-top: 30px; width: 80%; }
+        table { width: 100%; border-collapse: collapse; box-shadow: 0 0 20px rgba(0,0,0,0.1); }
+        th, td { padding: 15px; text-align: left; border-bottom: 1px solid #ddd; }
+        th { background-color: #3498db; color: white; }
+        tr:nth-child(even) { background-color: #f5f5f5; }
+        tr:hover { background-color: #f0f8ff; }
+        .rank { width: 15%; font-weight: bold; }
+        .points { width: 20%; }
+        .highlight { background-color: #e6f3ff; }
+        a { display: inline-block; margin-top: 20px; color: #3498db; text-decoration: none; }
+    </style>
+</head>
+<body>
+    <h1>Class Leaderboard</h1>
+    
+    <div class="leaderboard">
+        <table>
+            <thead>
+                <tr>
+                    <th class="rank">Rank</th>
+                    <th>Student Name</th>
+                    <th class="points">Points</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for student in students %}
+                <tr {% if is_student and student.id == current_user.id %}class="highlight"{% endif %}>
+                    <td>{{ loop.index }}</td>
+                    <td>
+                        {{ student.username }}
+                        {% if is_student and student.id == current_user.id %} (You!) {% endif %}
+                    </td>
+                    <td>{{ student.total_points }}</td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="3">No students in this class yet</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <a href="{{ url_for('student_dashboard' if is_student else 'teacher_dashboard') }}">Back to Dashboard</a>
+</body>
+</html>
