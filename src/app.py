@@ -186,6 +186,37 @@ def untimedTest():
     return render_template('untimed_test.html')
 
 
+@app.route('/match-game', methods=['GET', 'POST'])
+@login_required
+def matchGame():
+    if request.method == 'POST':
+        data = request.get_json()
+        points = data.get("points", 0)
+        i = data.get("i", 5)
+    else:
+        points = 0
+        i = 5
+
+    pairs = {}
+    n = 0
+    images, answers = randomImAns(6)
+    n = answers.count('0')
+    corr = []
+    for j in range(len(images)):
+        pairs[images[j]] = answers[j]
+        if answers[j] == '0':
+            corr.append(images[j])
+            print(corr)
+
+    return render_template("match-game.html", 
+                           correct_images = corr, 
+                           n=n, 
+                           i=i, 
+                           points=points,
+                           images=images,
+                           data=pairs)
+
+
 @app.route('/leaderboard')
 @login_required
 def leaderboard():

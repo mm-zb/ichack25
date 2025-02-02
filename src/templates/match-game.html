@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Image Grid Game</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            background-color: #f0f0f0;
+            padding: 20px;
+        }
+
+        .counter {
+            font-size: 24px;
+            margin-bottom: 20px;
+        }
+
+        .grid-container {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+            width: 50%;
+            max-width: 600px;
+        }
+
+        .grid-item {
+            position: relative;
+            overflow: hidden;
+            width: 100%;
+            padding-top: 100%; /* Makes it square */
+        }
+
+        .grid-item img {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 80%;
+            height: 80%;
+            object-fit: cover;
+            border-radius: 8px;
+            transition: transform 0.2s ease-in-out;
+            cursor: pointer;
+        }
+
+        .grid-item img:hover {
+            transform: scale(1.05);
+        }
+
+        .selected {
+            border: 5px solid blue;
+        }
+    </style>
+</head>
+<body>
+    <div class="counter">Real Images Left: <span id="remaining"></span></div>
+    <div class="counter">Points: <span id="points"></span></div>
+    <div class="counter">Rounds Left: <span id="round"></span></div>
+    <div class="grid-container">
+        {% for image in images %}
+        <div class="grid-item">
+            <img src="/static/{{ image }}" alt="Game Image" onclick="toggleSelection(this, '{{ image }}')">
+        </div>
+        {% endfor %}
+    </div>
+    
+    <button onclick="submitSelection()">Submit</button>
+    
+    <script>
+        var selectedImages = [];
+        var correctImages = {{ correct_images | tojson }};
+        var pairs = {{data | tojson}};
+        var n = {{ n }};
+        var points = {{points}};
+        var i = {{i}}
+
+        function toggleSelection(imgElement, imageName) {
+            if (selectedImages.includes(imageName)) {
+                selectedImages = selectedImages.filter(img => img !== imageName);
+                imgElement.classList.remove("selected");
+            } else {
+                selectedImages.push(imageName);
+                imgElement.classList.add("selected");
+            }
+        }
+
+        function submitSelection() {
+            let correctCount = selectedImages.filter(img => correctImages.includes(img)).length;
+            let incorrectCount = selectedImages.length - correctCount;
+            points += (correctCount)*15
+            alert(`Correct: ${correctCount}, Incorrect: ${incorrectCount}`);
+            showCorrect()
+        }
+
+        function showCorrect() {
+            for (image in correctImages) {
+                // hide all others
+                // show correct
+                // add button to go next
+                nextRound()
+            }
+            return;
+        }
+
+        function nextRound(){
+            if (i==0) {
+                endGame()
+                return;
+            }
+            fetch('/match-game', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ points: points, i: i - 1 })
+                })
+            
+                .then(response => response.text())
+                .then(html => {
+                    document.open();
+                    document.write(html);
+                    document.close();
+                })
+                .catch(error => console.error('Error:', error));
+            }
+
+            function endGame() {
+            alert(`Your points were ${points}`)
+            window.location.href = "/student";
+        }
+
+
+        document.getElementById("remaining").innerHTML = n;
+        document.getElementById("points").innerHTML = points;
+        document.getElementById("round").innerHTML = i;
+    </script>
+</body>
+</html>
