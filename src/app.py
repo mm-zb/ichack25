@@ -1,4 +1,4 @@
-# from untimedTest import *
+from untimedTest import *
 
 from flask import Flask, render_template, redirect, url_for, request, session
 from flask_sqlalchemy import SQLAlchemy
@@ -169,64 +169,22 @@ def student_dashboard():
     return render_template('student_dashboard.html')
 
 
-@app.route('/untimed-test', methods=['GET', 'POST'])
+@app.route('/timedTest', methods=['GET', 'POST'])
 @login_required
-def untimedTest():
+def timedTest():
     if request.method == "POST":
         n = int(request.form["number-input"])
         images, answers = randomImAns(n)
-        return render_template("play_untimed_test.html", ims=images, ans=answers)
+        return render_template("timedTest.html", 
+                               ims=images, 
+                               ans=answers, 
+                               n=n, 
+                               i=0,
+                               points = 0,
+                               score = 0)
     # GET request
-    return render_template('untimed_test.html')
+    return render_template('timedTest.html')
 
-@app.route('/api/csv-data')
-def get_csv_data():
-    # Load CSV data (filename, truthValue)
-    csv_data = []
-    with open('dataset/train.csv', 'r') as file:
-        reader = csv.DictReader(file)
-        for row in reader:
-            csv_data.append({
-                'filename': row['filename'],
-                'truthValue': int(row['truthValue'])
-            })
-
-    # Randomly select a subset of images (e.g., 10)
-    random.shuffle(csv_data)
-    subset = csv_data[:10]
-
-    # Prepare response
-    images = [item['filename'] for item in subset]
-    answers = [item['truthValue'] for item in subset]
-
-    return jsonify({
-        'images': images,
-        'answers': answers
-    })
-
-@app.route('/images/<filename>')
-def serve_image(filename):
-    return send_from_directory('dataset/JPGs', filename)
-
-@app.route('/api/save-score', methods=['POST'])
-@login_required
-def save_score():
-    if not isinstance(current_user, Student):
-        return jsonify({'error': 'Unauthorized'}), 403
-
-    data = request.get_json()
-    score = data.get('score')
-
-    # Save score to database
-    game = GameTracker(
-        studentID=current_user.id,
-        GameType=3,  # Assuming 3 is the game type for timed test
-        Points=score
-    )
-    db.session.add(game)
-    db.session.commit()
-
-    return jsonify({'message': 'Score saved successfully'})
 
 @app.route('/leaderboard')
 @login_required
@@ -281,11 +239,6 @@ def analytics():
         return redirect(url_for('login'))
     return render_template('analytics.html', 
                          total_points=current_user.total_points)
-
-@app.route('/timedTest')
-@login_required
-def timed_test():
-    return render_template('timedTest.html')
 
 if __name__ == '__main__':
     with app.app_context():
