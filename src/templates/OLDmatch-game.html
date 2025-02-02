@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Image Grid Game</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            background-color: #f0f0f0;
+            padding: 20px;
+        }
+
+        .counter {
+            font-size: 24px;
+            margin-bottom: 20px;
+        }
+
+        .grid-container {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+            width: 50%;
+            max-width: 600px;
+        }
+
+        .grid-item {
+            position: relative;
+            overflow: hidden;
+            width: 100%;
+            padding-top: 100%; /* Makes it square */
+        }
+
+        .grid-item img {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            border-radius: 8px;
+            transition: transform 0.2s ease-in-out;
+        }
+
+        .grid-item img:hover {
+            transform: scale(1.1);
+        }
+    </style>
+</head>
+<body>
+    <div class="counter">Real Images Left: <span id="remaining"></span></div>
+    <div class="counter">Score: <span id="points"></span></div>
+    <div class="counter">Rounds Left: <span id="round"></span></div>
+    <div class="grid-container">
+        {% for image in images %}
+        <div class="grid-item">
+            <a href="#" onclick="handleClick('{{ image }}')">
+                <img src="/static/{{ image }}" alt="Game Image">
+            </a>
+        </div>
+        {% endfor %}
+    </div>
+    
+    <script>
+        var pairs = {{data | tojson}};
+        var n = {{ n }};
+        var points = {{points}};
+        var i = {{i}}
+        function handleClick(image) {
+            // alert("You clicked on: " + image);
+            // Implement your game logic here
+            if (pairs[image] == 0) {
+                n -= 1;
+                alert("Correct")
+                points += 15;
+            }
+            else {
+                alert("Wrong")
+                points -= 5;
+            }
+
+            document.getElementById("remaining").innerHTML = n;
+            document.getElementById("points").innerHTML = points;
+            document.getElementById("round").innerHTML = i;
+            
+            if (n==0) {
+                nextRound()
+            }
+        }
+        function nextRound(){
+            if (i==0) {
+                endGame()
+                return;
+            }
+            fetch('/match-game', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ points: points, i: i - 1 })
+                })
+            
+                .then(response => response.text())
+                .then(html => {
+                    document.open();
+                    document.write(html);
+                    document.close();
+                })
+                .catch(error => console.error('Error:', error));
+            }
+
+
+        function endGame() {
+            alert(`Your points were ${points}`)
+            window.location.href = "/student";
+        }
+
+        document.getElementById("remaining").innerHTML = n;
+        document.getElementById("points").innerHTML = points;
+        document.getElementById("round").innerHTML = i;
+    </script>
+</body>
+</html>

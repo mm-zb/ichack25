@@ -1,0 +1,155 @@
+<div class="leaderboard-container">
+    <h2 class="leaderboard-title">{{ title }}</h2>
+    <div class="leaderboard-subtitle">
+        {% if type == 'attempts' %}
+            Total Game Attempts
+        {% elif 'game' in type %}
+            Game {{ type[-1] }} Points
+        {% else %}
+            All Games Combined
+        {% endif %}
+    </div>
+    
+    <div class="table-container">
+        <table class="leaderboard-table">
+            <thead>
+                <tr class="table-header">
+                    <th class="rank-col">Rank</th>
+                    <th class="student-col">Student</th>
+                    <th class="score-col">
+                        {% if type == 'attempts' %}
+                            Attempts
+                        {% else %}
+                            Points
+                        {% endif %}
+                    </th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for item in ranked %}
+                    <tr class="table-row {% if loop.index == 1 %}first-place{% endif %}">
+                        <td class="rank-col">{{ loop.index }}</td>
+                        <td class="student-col">
+                            <span class="student-name">
+                                {{ item[0].username if type == 'attempts' or 'game' in type else item.username }}
+                            </span>
+                        </td>
+                        <td class="score-col">
+                            <span class="score-value">
+                                {% if type == 'attempts' %}
+                                    {{ item.attempts }}
+                                {% elif 'game' in type %}
+                                    {{ item.total }}
+                                {% else %}
+                                    {{ item.total_points }}
+                                {% endif %}
+                            </span>
+                            {% if loop.index == 1 %}
+                                <span class="trophy">🏆</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                {% else %}
+                    <tr class="table-row">
+                        <td colspan="3" class="no-data">No students found</td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<style>
+    .leaderboard-container {
+        max-width: 800px;
+        margin: 20px auto;
+        background: var(--container-bg);
+        padding: 20px;
+        border-radius: 10px;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        text-align: center;
+    }
+
+    .leaderboard-title {
+        color: #2c3e50;
+        font-size: 1.8rem;
+        border-bottom: 2px solid var(--primary);
+        padding-bottom: 10px;
+    }
+
+    .leaderboard-subtitle {
+        color: #7f8c8d;
+        font-size: 0.9rem;
+        margin-bottom: 20px;
+    }
+
+    .table-container {
+        max-height: 60vh;
+        overflow-y: auto;
+    }
+
+    .leaderboard-table {
+        width: 100%;
+        border-collapse: collapse;
+        margin: 0 auto;
+        box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
+    }
+
+    .table-header {
+        background: var(--primary);
+        color: white;
+    }
+
+    .table-header th {
+        padding: 15px 20px;
+        text-align: left;
+    }
+
+    .table-row {
+        border-bottom: 1px solid #ecf0f1;
+        transition: background 0.2s ease;
+    }
+
+    .table-row:hover {
+        background: #f8f9fa;
+    }
+
+    .table-row td {
+        padding: 12px 20px;
+        font-size: 0.95rem;
+    }
+
+    .first-place {
+        background: #fff9e6;
+    }
+
+    .first-place td {
+        font-weight: 600;
+        color: #e67e22;
+    }
+
+    .rank-col {
+        width: 15%;
+        font-weight: 500;
+        color: #7f8c8d;
+    }
+
+    .student-col {
+        width: 60%;
+    }
+
+    .score-col {
+        width: 25%;
+        text-align: right;
+    }
+
+    .trophy {
+        margin-left: 10px;
+    }
+
+    .no-data {
+        text-align: center;
+        color: #95a5a6;
+        padding: 20px 0;
+    }
+</style>

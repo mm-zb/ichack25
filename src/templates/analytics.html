@@ -1,38 +1,84 @@
-<!DOCTYPE html>
-<html>
-<head>
-    <title>Game Analytics</title>
+{% extends "base_student.html" %}
+
+{% block title %}Game Analytics{% endblock %}
+
+{% block content %}
     <style>
+        .analytics-container {
+            max-width: 1200px;
+            margin: 20px auto;
+            background: var(--container-bg);
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            text-align: center;
+        }
+        
+        .analytics-title {
+            color: #2c3e50;
+            border-bottom: 2px solid var(--primary);
+            padding-bottom: 10px;
+        }
+        
+        .graphs-container {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            margin-top: 20px;
+        }
+        
         .game-section {
-            margin: 2rem 0;
-            padding: 1.5rem;
             background: #f8f9fa;
+            padding: 1rem;
             border-radius: 8px;
             box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            flex: 1;
+            text-align: center;
         }
+        
         .chart-img {
             width: 100%;
-            max-width: 800px;
+            max-width: 300px;
             height: auto;
             border: 1px solid #dee2e6;
             border-radius: 4px;
         }
+        
+        .back-link {
+            display: block;
+            text-align: center;
+            margin-top: 20px;
+            color: var(--primary);
+            text-decoration: none;
+            font-weight: bold;
+        }
+        
+        .back-link:hover {
+            color: var(--secondary);
+        }
     </style>
-</head>
-<body>
-    <div class="header">
-        <h1>Game Analytics</h1>
+
+    <div class="analytics-container">
+        <h1 class="analytics-title">Game Analytics</h1>
         <h2>Total Points: {{ total_points }}</h2>
+        
+        <div class="graphs-container">
+            {% for game_id in [1, 2, 3] %}
+            <div class="game-section">
+                <h3>Game {{ game_id }} History</h3>
+                <img src="{{ url_for('game_plot', game_type=game_id) }}" class="chart-img">
+                
+                {% if game_id in game_stats %}
+                    <p>PPG (last 5): {{ "%.2f"|format(game_stats[game_id].average_last_5) }}</p>
+                    <p>PPG (all time): {{ "%.2f"|format(game_stats[game_id].average_all_time) }}</p>
+                {% else %}
+                    <p>PPG (last 5): N/A</p>
+                    <p>PPG (all time): N/A</p>
+                {% endif %}
+            </div>
+            {% endfor %}
+        </div>
+        
     </div>
 
-    {% for game_id in [1, 2, 3] %}
-    <div class="game-section">
-        <h2>Game {{ game_id }} History</h2>
-        <img src="{{ url_for('game_plot', game_type=game_id) }}" 
-             alt="Game {{ game_id }} History Chart">
-    </div>
-    {% endfor %}
-
-    <a href="{{ url_for('student_dashboard') }}">Back to Dashboard</a>
-</body>
-</html>
+{% endblock %}

@@ -1,25 +1,21 @@
-<!DOCTYPE html>
-<html>
-<head>
-    <!-- <link rel="stylesheet" type="text/css" href="/stylesheet.css"> -->
-    <title>Student Dashboard</title>
-    <style>
-        body { font-family: Arial, sans-serif; margin: 50px; }
-        .button-container { display: flex; flex-direction: column; gap: 10px; max-width: 200px; }
-        button { padding: 15px; background-color: #3498db; color: white; border: none; cursor: pointer; }
-        button:hover { background-color: #2980b9; }
-        a { margin-top: 20px; display: inline-block; }
-    </style>
-</head>
-<body>
-    <h1>Welcome, Student!</h1>
-    <div class="button-container">
-        <button onclick="window.location.href='/untimed-test';">Game 1</button>
-        <button onclick="window.location.href='/timed-test';">Game 2</button>
-        <button onclick="window.location.href='/match-game';">Game 3</button>
-        <button onclick="window.location.href='/leaderboard';">Leaderboard</button>
-        <button onclick="window.location.href='/analytics';">Analytics</button>
+{% extends "base_student.html" %}
+{% block title %}Student Dashboard{% endblock %}
+
+{% block content %}
+    <h1 class="welcome-header">Welcome, {{ user.firstname }}!</h1>
+    
+    <div class="game-grid">
+        <a href="{{ url_for('game', game_id=1) }}" class="game-btn">
+            <i>🎮</i>
+            Untimed Test
+        </a>
+        <a href="{{ url_for('game', game_id=2) }}" class="game-btn">
+            <i>🕹️</i>
+            Timed Test
+        </a>
+        <a href="{{ url_for('game', game_id=3) }}" class="game-btn">
+            <i>👾</i>
+            Matching Game
+        </a>
     </div>
-    <a href="{{ url_for('logout') }}">Logout</a>
-</body>
-</html>
+{% endblock %}

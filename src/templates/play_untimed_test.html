@@ -133,9 +133,17 @@
             <button id="fake-btn" class="answer-btn" onclick="handleAnswer('1')">Fake</button>
         </div>
 
-        <div id="heatmap-container">
+        <!-- <div id="heatmap-container">
+            <style>
+                img {
+                    cursor: crosshair;
+                }
+            </style>
+
             <h3>Bonus Round! Click on the heatmap:</h3>
+            <p id="output"></p>
             <img id="heatmap-image" src="" alt="Heatmap">
+             -->
         </div>
     </div>
 
@@ -149,7 +157,6 @@
         var answers = {{ ans | tojson}};
         var images = {{ ims | tojson }};
         update()
-
         function update() {
             index = index + 1;
             document.getElementById("game-image").src = `/static/${images[index]}`;
@@ -159,10 +166,10 @@
         }
 
         function bonusPoints() {
-            all = document.getElementsByClassName("game-container");
-            setTimeout(() => {overlay.style.display = 'none';}, 2000);
+            //document.getElementById("image").style.display = "show";
+            setTimeout(() => {overlay.style.display = 'none';}, 10000);
             console.log("BONUS")
-            return 10;
+            return 0;
         }
 
         function handleAnswer(answer) {
@@ -177,7 +184,7 @@
                 overlay.style.display = 'flex';
                 setTimeout(() => {overlay.style.display = 'none';}, 500);
 
-                points += 15 * (streak * 0.1 + 1) + bonus;
+                points += Math.floor(15 * (streak * 0.1 + 1) + bonus);
                 streak += 1;
                 score += 1;
 
@@ -224,7 +231,6 @@
                 handleAnswer(userAnswer);
             }
         });
-
 
     </script>
 </body>
