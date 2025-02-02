@@ -1,14 +1,129 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <title>Register</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <title>Register | Game Portal</title>
     <style>
-        body { font-family: Arial, sans-serif; max-width: 300px; margin: 50px auto; }
-        form { display: flex; flex-direction: column; gap: 10px; }
-        input, select { padding: 8px; margin-bottom: 10px; }
-        button { padding: 10px; background-color: #3498db; color: white; border: none; }
-        #teacher-select { display: none; margin-top: 10px; }
-        a { display: block; text-align: center; margin-top: 15px; }
+        @import url('https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap');
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Poppins', sans-serif;
+        }
+
+        body {
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background: linear-gradient(135deg, #031d32, #291D89);
+            padding: 20px;
+        }
+
+        .register-container {
+            background: rgba(240, 244, 255, 0.95);
+            padding: 40px;
+            border-radius: 20px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+            width: 100%;
+            max-width: 400px;
+            transform: translateY(0);
+            animation: slideUp 0.6s ease;
+        }
+
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .logo {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+
+        .logo h1 {
+            color: #4E67EB;
+            font-size: 3.2rem;
+            letter-spacing: -1px;
+            font-weight: 700;
+            text-shadow: 2px 2px 4px rgba(177, 18, 255, 0.2);
+        }
+
+        .form-group {
+            margin-bottom: 25px;
+            position: relative;
+        }
+
+        .form-group input, .form-group select {
+            width: 100%;
+            padding: 15px 20px;
+            background: #F0F4FF;
+            border: 2px solid transparent;
+            border-radius: 10px;
+            color: #031d32;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+        }
+
+        .form-group input:focus, .form-group select:focus {
+            outline: none;
+            border-color: #B112FF;
+            background: #fff;
+            box-shadow: 0 0 8px rgba(78, 103, 235, 0.2);
+        }
+
+        .register-btn {
+            width: 100%;
+            padding: 15px;
+            background: #4E67EB;
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .register-btn:hover {
+            background: #B112FF;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(78, 103, 235, 0.3);
+        }
+
+        .links {
+            margin-top: 30px;
+            text-align: center;
+        }
+
+        .links a {
+            color: #B112FF;
+            text-decoration: none;
+            font-size: 0.9rem;
+            transition: color 0.3s ease;
+            margin: 0 10px;
+        }
+
+        .links a:hover {
+            color: #4E67EB;
+        }
+
+        #teacher-select {
+            display: none;
+        }
     </style>
     <script>
         function toggleTeacherSelect() {
@@ -19,28 +134,47 @@
     </script>
 </head>
 <body>
-    <h2>Register</h2>
-    <form method="POST">
-        <input type="text" name="username" placeholder="Username" required>
-        <input type="password" name="password" placeholder="Password" required>
-        
-        <select name="role" required onchange="toggleTeacherSelect()">
-            <option value="">Select Role</option>
-            <option value="teacher">Teacher</option>
-            <option value="student">Student</option>
-        </select>
-
-        <div id="teacher-select">
-            <select name="teacher_id" required>
-                <option value="">Select Teacher</option>
-                {% for teacher in teachers %}
-                <option value="{{ teacher.id }}">{{ teacher.username }}</option>
-                {% endfor %}
-            </select>
+    <div class="register-container">
+        <div class="logo">
+            <h1>GamePortal</h1>
         </div>
+        
+        <form method="POST">
+            <div class="form-group">
+                <input type="text" name="username" placeholder="Username" required>
+            </div>
+            
+            <div class="form-group">
+                <input type="password" name="password" placeholder="Password" required>
+            </div>
 
-        <button type="submit">Register</button>
-    </form>
-    <a href="{{ url_for('login') }}">Already have an account? Login here</a>
+            <div class="form-group">
+                <input type="text" name="firstname" placeholder="Name" required>
+            </div>
+            
+            <div class="form-group">
+                <select name="role" required onchange="toggleTeacherSelect()">
+                    <option value="">Select Role</option>
+                    <option value="teacher">Teacher</option>
+                    <option value="student">Student</option>
+                </select>
+            </div>
+
+            <div id="teacher-select" class="form-group">
+                <select name="teacher_id" required>
+                    <option value="">Select Teacher</option>
+                    {% for teacher in teachers %}
+                    <option value="{{ teacher.id }}">{{ teacher.username }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            
+            <button type="submit" class="register-btn">Register</button>
+        </form>
+
+        <div class="links">
+            <a href="{{ url_for('login') }}">Already have an account? Login here</a>
+        </div>
+    </div>
 </body>
 </html>
