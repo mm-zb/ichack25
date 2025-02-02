@@ -27,8 +27,19 @@
             max-width: 600px;
         }
 
+        .overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 90%;
+            height: 90%;
+            display: none; /* Initially hidden */
+}
+
+
         .grid-item {
             position: relative;
+            display: inline-block;
             overflow: hidden;
             width: 100%;
             padding-top: 100%; /* Makes it square */
@@ -38,8 +49,9 @@
             position: absolute;
             top: 0;
             left: 0;
-            width: 80%;
-            height: 80%;
+            width: 90%;
+            height: 90%;
+            display: block;
             object-fit: cover;
             border-radius: 8px;
             transition: transform 0.2s ease-in-out;
@@ -51,7 +63,7 @@
         }
 
         .selected {
-            border: 5px solid blue;
+            border: 3px solid blue;
         }
     </style>
 </head>
@@ -61,13 +73,14 @@
     <div class="counter">Rounds Left: <span id="round"></span></div>
     <div class="grid-container">
         {% for image in images %}
-        <div class="grid-item">
-            <img src="/static/{{ image }}" alt="Game Image" onclick="toggleSelection(this, '{{ image }}')">
+        <div class="grid-item" onclick="toggleSelection(this, '{{ image }}')">
+            <img src="/static/{{ image }}" alt="Game Image" >
+            <div class="overlay"></div>
         </div>
         {% endfor %}
     </div>
     
-    <button onclick="submitSelection()">Submit</button>
+    <button id="submit-button" onclick="submitSelection()">Submit</button>
     
     <script>
         var selectedImages = [];
@@ -76,6 +89,7 @@
         var n = {{ n }};
         var points = {{points}};
         var i = {{i}}
+        var images = {{images | tojson}}
 
         function toggleSelection(imgElement, imageName) {
             if (selectedImages.includes(imageName)) {
@@ -92,18 +106,49 @@
             let incorrectCount = selectedImages.length - correctCount;
             points += (correctCount)*15
             alert(`Correct: ${correctCount}, Incorrect: ${incorrectCount}`);
+            document.getElementById("submit-button").display = "hide";
             showCorrect()
         }
 
+
         function showCorrect() {
-            for (image in correctImages) {
-                // hide all others
-                // show correct
-                // add button to go next
-                nextRound()
-            }
-            return;
+            // Loop through all grid items and apply overlay color based on `pairs`
+            document.querySelectorAll(".grid-item").forEach((gridItem, index) => {
+                let imageName = images[index];  // Get the corresponding image name
+                let overlay = gridItem.querySelector('.overlay'); // Get overlay element
+
+                if (pairs[imageName] == '0') {
+                    overlay.style.background = "rgba(0, 255, 0, 0.5)"; // Green overlay
+                } else {
+                    overlay.style.background = "rgba(255, 0, 0, 0.5)"; // Red overlay
+                }
+
+                overlay.style.display = "block"; // Show overlay
+            });
+
+            // Add a button to go to the next round
+            let nextButton = document.createElement("button");
+            nextButton.innerText = "Next Round";
+            nextButton.onclick = nextRound;
+            document.body.appendChild(nextButton);
         }
+
+        // function showCorrect() {
+        //     let overlay = image.querySelector('.overlay');
+        //     overlay.style.display = "block";
+        //     for (image in images) {
+        //         element 
+                
+        //         if (pairs[image]=='0') {
+                    
+        //         }
+        //         // hide all others
+        //         // show correct
+        //         // add button to go next
+        //         nextRound()
+        //     }
+        //     return;
+        // }
 
         function nextRound(){
             if (i==0) {
