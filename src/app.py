@@ -168,7 +168,6 @@ def student_dashboard():
         return redirect(url_for('login'))
     return render_template('student_dashboard.html')
 
-
 @app.route('/untimed-test', methods=['GET', 'POST'])
 @login_required
 def untimedTest():
@@ -185,6 +184,21 @@ def untimedTest():
     # GET request
     return render_template('untimed_test.html')
 
+@app.route('/timed-test', methods=['GET', 'POST'])
+@login_required
+def timedTest():
+    if request.method == "POST":
+        n = int(request.form["number-input"])
+        images, answers = randomImAns(n)
+        return render_template("play_timed_test.html", 
+                               ims=images, 
+                               ans=answers, 
+                               n=n, 
+                               i=0,
+                               points = 0,
+                               score = 0)
+    # GET request
+    return render_template('timed_test.html')
 
 @app.route('/leaderboard')
 @login_required

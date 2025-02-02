@@ -5,9 +5,8 @@
 #show heatmap if fake
 
 import random, os, csv
-from PIL import Image
 
-filepath = "images/"
+filepath = "src/static"
 
 csvData = "train.csv"
 #csv data
@@ -52,9 +51,6 @@ def randomImages(n):
     images = [f for f in os.listdir(filepath) if f.lower().endswith(('.jpg'))]
     return random.sample(images, n)
 
-def show_image(filepath):
-    img = Image.open(filepath) 
-    img.show() 
 
 def askQuestion(real, image):
     bonus = 0
