@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Untimed Test</title>
+    <style>
+        .stats-container {
+            display: flex;
+            justify-content: space-around;
+            margin: 20px;
+            padding: 15px;
+            background-color: #f5f5f5;
+            border-radius: 10px;
+        }
+        .stat-item {
+            text-align: center;
+        }
+        .stat-label {
+            font-size: 14px;
+            color: #666;
+        }
+        .stat-value {
+            font-size: 24px;
+            font-weight: bold;
+            color: #333;
+        }
+        .image-container {
+            max-width: 600px;
+            margin: 20px auto;
+        }
+        .image-container img {
+            width: 100%;
+            height: auto;
+            border: 2px solid #333;
+        }
+        .button-container {
+            text-align: center;
+            margin: 20px;
+        }
+        button {
+            padding: 10px 20px;
+            margin: 0 10px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+        button:hover {
+            transform: scale(1.05);
+        }
+        .progress-container {
+            width: 80%;
+            margin: 20px auto;
+            background-color: #eee;
+            border-radius: 10px;
+            height: 20px;
+        }
+        .progress-bar {
+            height: 100%;
+            background-color: #4CAF50;
+            border-radius: 10px;
+            transition: width 0.3s ease;
+        }
+        .final-stats {
+            text-align: center;
+            margin: 30px;
+            padding: 20px;
+            background-color: #f8f9fa;
+            border-radius: 10px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+    </style>
+</head>
+<body>
+    {% if not session.get('test_data') %}
+        <div style="text-align: center; margin-top: 50px;">
+            <h1>Untimed Test</h1>
+            <form method="POST" action="{{ url_for('untimedTest') }}">
+                <label for="num_questions">Number of Questions:</label>
+                <input type="number" id="num_questions" name="num_questions" 
+                       min="1" required style="padding: 5px; margin: 10px;">
+                <br>
+                <button type="submit" style="background-color: #4CAF50; color: white;">
+                    Start Test
+                </button>
+            </form>
+        </div>
+    {% else %}
+        {% set test_data = session['test_data'] %}
+        {% if test_data['current_index'] < test_data['total_questions'] %}
+            <div class="stats-container">
+                <div class="stat-item">
+                    <div class="stat-label">Current Score</div>
+                    <div class="stat-value" id="currentScore">{{ test_data['score'] }}</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-label">Current Streak</div>
+                    <div class="stat-value" id="currentStreak">{{ test_data['streak'] - 1 }}</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-label">Total Points</div>
+                    <div class="stat-value" id="totalPoints">{{ test_data['points'] }}</div>
+                </div>
+            </div>
+
+            <div class="progress-container">
+                <div class="progress-bar" id="progressBar" 
+                     style="width: {{ (test_data['current_index'] / test_data['total_questions']) * 100 }}%">
+                </div>
+            </div>
+
+            <div class="image-container">
+                <img id="currentImage" src="{{ url_for('static', filename='images/' + test_data['images'][test_data['current_index']]) }}" 
+                     alt="Test Image">
+            </div>
+
+            <div class="button-container">
+                <button onclick="submitAnswer('0')" style="background-color: #2196F3; color: white;">
+                    Real
+                </button>
+                <button onclick="submitAnswer('1')" style="background-color: #f44336; color: white;">
+                    Fake
+                </button>
+            </div>
+        {% else %}
+            <div class="final-stats">
+                <h1>Test Completed! 🎉</h1>
+                <div class="stat-item">
+                    <div class="stat-label">Questions Answered</div>
+                    <div class="stat-value">{{ test_data['total_questions'] }}</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-label">Correct Answers</div>
+                    <div class="stat-value">{{ test_data['score'] }}</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-label">Total Points Earned</div>
+                    <div class="stat-value">{{ test_data['points'] }}</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-label">Longest Streak</div>
+                    <div class="stat-value">{{ test_data['longest_streak'] }}</div>
+                </div>
+                <a href="{{ url_for('student_dashboard') }}" 
+                   style="text-decoration: none; background-color: #4CAF50; color: white; padding: 10px 20px; margin-top: 20px; display: inline-block;">
+                    Return to Dashboard
+                </a>
+            </div>
+        {% endif %}
+    {% endif %}
+
+    <script>
+        async function submitAnswer(answer) {
+            const response = await fetch('/untimed-test', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json'
+                },
+                body: JSON.stringify({ answer: answer })
+            });
+
+            const data = await response.json();
+
+            if (data.completed) {
+                window.location.reload(); // Load final results page
+            } else {
+                // Update stats
+                document.getElementById('currentScore').textContent = data.score;
+                document.getElementById('currentStreak').textContent = data.streak - 1;
+                document.getElementById('totalPoints').textContent = data.points;
+                
+                // Update progress bar
+                const progress = (data.current_index / data.total_questions) * 100;
+                document.getElementById('progressBar').style.width = `${progress}%`;
+                
+                // Update image
+                document.getElementById('currentImage').src = 
+                    `/static/images/${data.next_image}`;
+            }
+        }
+    </script>
+</body>
+</html>
