@@ -1,5 +1,6 @@
-<!DOCTYPE html>
-<html lang="en">
+{% extends "base_student.html" %}
+{% block title %}Match Game{% endblock %}
+{% block content %}
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -10,47 +11,54 @@
             display: flex;
             flex-direction: column;
             align-items: center;
-            background-color: #f0f0f0;
+            background-color: #4e67eb; /* Blue background */
             padding: 20px;
         }
+
+        .game-container, #end-game-container {
+            background-color: white; /* White background for containers */
+            padding: 10px;
+            border-radius: 8px; /* Rounded corners */
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1); /* Subtle shadow */
+            width: 100vw; /* Full viewport width */
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 80vh; /* Ensure it takes up a good portion of the viewport height */
+        }
+
 
         .counter {
             font-size: 24px;
             margin-bottom: 20px;
+            color: #333;
+            font-weight: bold;
         }
 
         .grid-container {
             display: grid;
             grid-template-columns: repeat(3, 1fr);
             gap: 10px;
-            width: 50%;
+            width: 100%;
             max-width: 600px;
         }
-
-        .overlay {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 90%;
-            height: 90%;
-            display: none; /* Initially hidden */
-}
-
 
         .grid-item {
             position: relative;
             display: inline-block;
             overflow: hidden;
             width: 100%;
-            padding-top: 100%; /* Makes it square */
+            padding-top: 100%;
         }
 
         .grid-item img {
             position: absolute;
             top: 0;
             left: 0;
-            width: 90%;
-            height: 90%;
+            width: 100%;
+            height: 100%;
             display: block;
             object-fit: cover;
             border-radius: 8px;
@@ -63,33 +71,131 @@
         }
 
         .selected {
-            border: 3px solid blue;
+            border: 5px solid blue;
+            border-radius: 8px;
+        }
+
+        .overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: none;
+            border-radius: 8px;
+        }
+
+        .overlay.correct {
+            background: rgba(0, 255, 0, 0.5);
+        }
+
+        .overlay.incorrect {
+            background: rgba(255, 0, 0, 0.5);
+        }
+
+        .overlay.correct.selected::after {
+            content: "✔";
+            font-size: 3em;
+            color: white;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+        }
+
+        .overlay.incorrect.selected::after {
+            content: "👀";
+            font-size: 3em;
+            color: white;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+        }
+
+        #submit-button, #next-round-button {
+            background-color: #5f8e9d;
+            color: white;
+            padding: 15px 30px;
+            border: none;
+            border-radius: 5px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: transform 0.2s;
+            margin-top: 20px;
+        }
+
+        #submit-button:hover, #next-round-button:hover {
+            transform: scale(1.05);
+        }
+
+        #end-game-container {
+            display: none; /* Hidden by default */
+            text-align: center;
+        }
+
+        #end-game-container h1 {
+            font-size: 40px;
+            margin-bottom: 20px;
+            color: #4CAF50; /* Green color for the final score */
+        }
+
+        #end-game-container .buttons {
+            display: flex;
+            gap: 20px;
+            justify-content: center;
+            margin-top: 20px;
+        }
+
+        #end-game-container .buttons button {
+            background-color: #5f8e9d;
+            color: white;
+            padding: 20px 40px;
+            font-size: 20px;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+
+        #end-game-container .buttons button:hover {
+            transform: scale(1.05);
         }
     </style>
 </head>
 <body>
-    <div class="counter">Real Images: <span id="remaining"></span></div>
-    <div class="counter">Points: <span id="points"></span></div>
-    <div class="counter">Rounds Left: <span id="round"></span></div>
-    <div class="grid-container">
-        {% for image in images %}
-        <div class="grid-item" onclick="toggleSelection(this, '{{ image }}')">
-            <img src="/static/{{ image }}" alt="Game Image" >
-            <div class="overlay"></div>
+    <div class="game-container">
+        <div class="counter">Real Images: <span id="remaining"></span></div>
+        <div class="counter">🏆 Points: <span id="points"></span></div>
+        <div class="counter">Rounds Left: <span id="round"></span></div>
+        <div class="grid-container">
+            {% for image in images %}
+            <div class="grid-item" onclick="toggleSelection(this, '{{ image }}')">
+                <img src="/static/{{ image }}" alt="Game Image">
+                <div class="overlay"></div>
+            </div>
+            {% endfor %}
         </div>
-        {% endfor %}
+        <button id="submit-button" onclick="submitSelection()">Submit</button>
     </div>
-    
-    <button id="submit-button" onclick="submitSelection()">Submit</button>
-    
+
+    <!-- Endgame container -->
+    <div id="end-game-container">
+        <h1>🎉 Final Score: <span id="final-score"></span> 🏆</h1>
+        <div class="buttons">
+            <button onclick="goBack()">Go Back</button>
+            <button onclick="playAgain()">Play Again</button>
+        </div>
+    </div>
+
     <script>
         var selectedImages = [];
         var correctImages = {{ correct_images | tojson }};
-        var pairs = {{data | tojson}};
+        var pairs = {{ data | tojson }};
         var n = {{ n }};
-        var points = {{points}};
-        var i = {{i}}
-        var images = {{images | tojson}}
+        var points = {{ points }};
+        var i = {{ i }};
+        var images = {{ images | tojson }};
 
         function toggleSelection(imgElement, imageName) {
             if (selectedImages.includes(imageName)) {
@@ -104,83 +210,79 @@
         function submitSelection() {
             let correctCount = selectedImages.filter(img => correctImages.includes(img)).length;
             let incorrectCount = selectedImages.length - correctCount;
-            points += (correctCount)*15
+            points += (correctCount) * 15;
             alert(`Correct: ${correctCount}, Incorrect: ${incorrectCount}`);
-            document.getElementById("submit-button").display = "hide";
-            showCorrect()
+            document.getElementById("submit-button").style.display = "none";
+            showCorrect();
         }
-
 
         function showCorrect() {
-            // Loop through all grid items and apply overlay color based on `pairs`
             document.querySelectorAll(".grid-item").forEach((gridItem, index) => {
-                let imageName = images[index];  // Get the corresponding image name
-                let overlay = gridItem.querySelector('.overlay'); // Get overlay element
+                let imageName = images[index];
+                let overlay = gridItem.querySelector('.overlay');
 
                 if (pairs[imageName] == '0') {
-                    overlay.style.background = "rgba(0, 255, 0, 0.5)"; // Green overlay
+                    overlay.classList.add("correct");
                 } else {
-                    overlay.style.background = "rgba(255, 0, 0, 0.5)"; // Red overlay
+                    overlay.classList.add("incorrect");
                 }
 
-                overlay.style.display = "block"; // Show overlay
+                if (pairs[imageName] == '0' && selectedImages.includes(imageName)) {
+                    overlay.classList.add("selected");
+                }
+
+                if (pairs[imageName] == '1' && selectedImages.includes(imageName)) {
+                    overlay.classList.add("selected");
+                }
+
+                overlay.style.display = "block";
             });
 
-            // Add a button to go to the next round
             let nextButton = document.createElement("button");
+            nextButton.id = "next-round-button";
             nextButton.innerText = "Next Round";
             nextButton.onclick = nextRound;
-            document.body.appendChild(nextButton);
+            document.querySelector(".game-container").appendChild(nextButton);
         }
 
-        // function showCorrect() {
-        //     let overlay = image.querySelector('.overlay');
-        //     overlay.style.display = "block";
-        //     for (image in images) {
-        //         element 
-                
-        //         if (pairs[image]=='0') {
-                    
-        //         }
-        //         // hide all others
-        //         // show correct
-        //         // add button to go next
-        //         nextRound()
-        //     }
-        //     return;
-        // }
-
-        function nextRound(){
-            if (i==0) {
-                endGame()
+        function nextRound() {
+            if (i == 0) {
+                endGame();
                 return;
             }
             fetch('/match-game', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({ points: points, i: i - 1 })
-                })
-            
-                .then(response => response.text())
-                .then(html => {
-                    document.open();
-                    document.write(html);
-                    document.close();
-                })
-                .catch(error => console.error('Error:', error));
-            }
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ points: points, i: i - 1 })
+            })
+            .then(response => response.text())
+            .then(html => {
+                document.open();
+                document.write(html);
+                document.close();
+            })
+            .catch(error => console.error('Error:', error));
+        }
 
-            function endGame() {
-            alert(`Your points were ${points}`)
+        function endGame() {
+            document.querySelector(".game-container").style.display = "none";
+            document.getElementById("end-game-container").style.display = "block";
+            document.getElementById("final-score").innerText = points;
+        }
+
+        function goBack() {
             window.location.href = "/student";
         }
 
+        function playAgain() {
+            window.location.href = "/match-game";
+        }
 
         document.getElementById("remaining").innerHTML = n;
         document.getElementById("points").innerHTML = points;
         document.getElementById("round").innerHTML = i;
     </script>
 </body>
-</html>
+{% endblock %}

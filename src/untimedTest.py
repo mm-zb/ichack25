@@ -8,6 +8,7 @@ import random, os, csv
 from PIL import Image
 
 filepath = "images/"
+filepathUntimed = "static/actualOriginal"
 
 csvData = "train.csv"
 #csv data
@@ -46,6 +47,18 @@ def randomImAns(n):
         answers.append(ansMap[im])  
     return images, answers  
 
+def randomImAnsUntimed(n):
+    ansMap = answerDict()
+    images = randomImagesUntimed(int(n))
+    answers = []
+    for im in images:
+        im = "train_data/"+im
+        answers.append(ansMap[im])  
+    return images, answers  
+
+def randomImagesUntimed(n):
+    images = [f for f in os.listdir(filepathUntimed) if f.lower().endswith(('.jpg'))]
+    return random.sample(images, n)
 
 
 def randomImages(n):

@@ -11,6 +11,8 @@ from flask import send_from_directory, jsonify, session
 import matplotlib
 import matplotlib.pyplot as plt
 matplotlib.use('Agg')
+import cv2
+from PIL import Image
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'your-secret-key-here'
@@ -257,7 +259,7 @@ def student_dashboard():
 def untimedTest():
     if request.method == "POST":
         n = int(request.form["number-input"])
-        images, answers = randomImAns(n)
+        images, answers = randomImAnsUntimed(n)
         return render_template("play_untimed_test.html", 
                                ims=images, 
                                ans=answers, 
@@ -267,6 +269,56 @@ def untimedTest():
                                score = 0)
     # GET request
     return render_template('untimed_test.html')
+
+@app.route("/get_rgb", methods=["POST"])
+def get_rgb():
+    try:
+        x = int(request.json["x"])
+        y = int(request.json["y"])
+        img_path= "static/actualOriginal/" #GIVE IMAGE PATH
+        img_width, img_height = Image.size
+        #img_width = 768
+        #img_height = 512
+        set_width = 500
+        set_height = set_width*(img_height/img_width)
+        x = (x/set_width)*img_width
+        y = (y/set_height)*img_height
+        # set_height=(img_height/img_width)*set_width
+        # y = (y/set_height)*img_height
+        print(x)
+        print(y)
+
+        heatmap_path = "static/overlay/" #GIVE HEATMAP PATH
+
+        heatmap = cv2.imread(heatmap_path, cv2.IMREAD_COLOR)
+        #h,w,c=heatmap.shape
+        #print(h)
+        #print(w)
+
+        if heatmap is None:
+            print("what")
+            return jsonify({"error": "Heatmap image not found!"}), 404#
+       
+        b, g, r = heatmap[y, x]
+
+        return rgbscale([r, g, b])
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+
+def rgbscale(rgb_value):
+    r = rgb_value[0]
+    g = rgb_value[1]
+    b = rgb_value[2]
+
+    r_norm = r / 255
+    b_norm = b / 255
+    theMax = 20
+
+    scale = (r_norm - b_norm + 1) * (theMax/2)  
+    scale = max(0, min(100, int(scale)))
+    return jsonify({"scale": scale})
+
 
 @app.route('/timed-test')
 @login_required

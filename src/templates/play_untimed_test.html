@@ -1,5 +1,6 @@
-<!DOCTYPE html>
-<html lang="en">
+{% extends "base_student.html" %}
+{% block title %}Play Untimed Game{% endblock %}
+{% block content %}
 <head>
     <!-- <link rel="stylesheet" type="text/css" href="/templates/stylesheet.css"> -->
     <meta charset="UTF-8">
@@ -7,7 +8,7 @@
     <title>Real or Fake Game</title>
     <style>
         body {
-            font-family: Arial, sans-serif;
+            font-family: Poppins, sans-serif;
             display: flex;
             flex-direction: column;
             align-items: center;
@@ -70,7 +71,7 @@
             align-items: center;
             justify-content: center;
             font-size: 100px;
-            background-color: rgba(255, 255, 255, 0.8);
+            background: none;
             display: none;
         }
 
@@ -93,6 +94,15 @@
         #again-btn {
             background-color: #5f8e9d;
             color: white;
+            display: none;
+        }
+
+        #cont-deep {
+            color: white;
+            /* display: none; */
+        }
+
+        #deepfake {
             display: none;
         }
 
@@ -122,15 +132,17 @@
         </div>
         
         <div id="image-container">
-            <img id="game-image" class="game-image" src="/static/{{ ims[0] }}" alt="Game image">
+            <img id="game-image" class="game-image" src="/static/actualOriginal/{{ ims[0] }}" alt="Game image">
             <button id="home-btn" class="answer-btn" onclick=goBack()>Go Back</button>
             <button id="again-btn" class="answer-btn" onclick=playAgain()>Play Again</button>
             <div id="overlay"></div>
+            <img id="deepfake" class="game-image" src="/static/overlayed/{{ ims[0] }}">
         </div>
 
         <div class="button-group">
             <button id="real-btn" class="answer-btn" onclick="handleAnswer('0')">Real</button>
             <button id="fake-btn" class="answer-btn" onclick="handleAnswer('1')">Fake</button>
+            <button id="cont-deep" class="answer-btn" onclick="continueDeepfake()" hidden>Next</button>
         </div>
 
         <!-- <div id="heatmap-container">
@@ -146,7 +158,7 @@
              -->
         </div>
     </div>
-
+    <script src="{{ url_for('static', filename='guesser.js') }}"></script>
     <script>
 
         var points = {{ points }};
@@ -159,15 +171,20 @@
         update()
         function update() {
             index = index + 1;
-            document.getElementById("game-image").src = `/static/${images[index]}`;
+            document.getElementById("game-image").src = `/static/actualOriginal/${images[index]}`;
+            document.getElementById("deepfake").src = `/static/overlayed/${images[index]}`;
             document.getElementById("remaining").innerHTML = (n-index);
             document.getElementById("points").innerHTML = points;
             document.getElementById("streak").innerHTML = streak-1;
         }
 
         function bonusPoints() {
-            //document.getElementById("image").style.display = "show";
-            setTimeout(() => {overlay.style.display = 'none';}, 10000);
+            
+
+            var img = document.getElementById('game-image');
+            var width = img.clientWidth;
+            // wait for other fun to finish
+            displayHeatmap()
             console.log("BONUS")
             return 0;
         }
@@ -196,21 +213,42 @@
                 setTimeout(() => {overlay.style.display = 'none';}, 500);
 
                 streak = 1;
+                update()
+                if (index>=n) {
+                endGame()
+                // alert(`Game Over! Final Score: ${score}/${n}\nTotal Points: ${points}`);
+                }   
 
                 if (answer=='1') {
                     displayHeatmap()
                 }
             }
+        }
+
+        function displayHeatmap() {
+            document.getElementById("deepfake").style.display = "block";
+            // document.getElementById("game-image").style.display = "none";
+            document.getElementById("real-btn").setAttribute("hidden", "hidden");
+            document.getElementById("fake-btn").setAttribute("hidden", "hidden");
+            
+            document.getElementById("cont-deep").removeAttribute("hidden");
+            console.log("HIDE");
+        }
+
+        function continueDeepfake() {
+            document.getElementById("deepfake").style.display = "none";
+            document.getElementById("cont-deep").setAttribute("hidden", "hidden");
+            console.log('DONE');
+            // document.getElementById("game-image").style.display = "block";
+            document.getElementById("real-btn").removeAttribute("hidden");
+            document.getElementById("fake-btn").removeAttribute("hidden");
+            
             update()
             
             if (index>=n) {
                 endGame()
                 // alert(`Game Over! Final Score: ${score}/${n}\nTotal Points: ${points}`);
             }
-        }
-
-        function displayHeatmap() {
-            
         }
 
         function endGame() {
@@ -244,4 +282,4 @@
 
     </script>
 </body>
-</html>
+{% endblock %}

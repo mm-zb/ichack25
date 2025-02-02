@@ -1,5 +1,7 @@
-<!DOCTYPE html>
-<html lang="en">
+{% extends "base_student.html" %}
+{% block title %}Start Untimed Game{% endblock %}
+
+{% block content %}
 <head>
     <!-- <link rel="stylesheet" type="text/css" href="/templates/stylesheet.css"> -->
     <meta charset="UTF-8">
@@ -7,7 +9,7 @@
     <title>Number Input Form</title>
     <style>
         body {
-            font-family: Arial, sans-serif;
+            font-family: Poppins, sans-serif;
             display: flex;
             justify-content: center;
             align-items: center;
@@ -72,4 +74,4 @@
         </form>
     </div>
 </body>
-</html>
+{% endblock %}
