@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Timed Test Game</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            background-color: #f4f4f4;
+            margin: 0;
+            padding: 0;
+        }
+        #game-container {
+            margin-top: 50px;
+        }
+        #progress-bar-container {
+            width: 100%;
+            height: 10px;
+            background-color: #ddd;
+            margin-top: 20px;
+            position: relative;
+        }
+        #progress-bar {
+            height: 100%;
+            width: 100%;
+            background-color: #4caf50;
+            transition: width 1s linear;
+        }
+        #image-container {
+            position: relative;
+            margin: 20px auto;
+            width: 300px;
+            height: 300px;
+            border: 2px solid #ccc;
+            background-color: #fff;
+        }
+        #image-container img {
+            max-width: 100%;
+            max-height: 100%;
+        }
+        #overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 100px;
+            background-color: rgba(255, 255, 255, 0.8);
+            display: none;
+        }
+        #score-container {
+            font-size: 24px;
+            margin-top: 20px;
+        }
+        #streak-container {
+            font-size: 20px;
+            margin-top: 10px;
+            color: #ff5722;
+        }
+    </style>
+</head>
+<body>
+    <div id="game-container">
+        <h1>Timed Test Game</h1>
+        <div id="progress-bar-container">
+            <div id="progress-bar"></div>
+        </div>
+        <div id="image-container">
+            <img id="game-image" src="" alt="Game Image">
+            <div id="overlay"></div>
+        </div>
+        <div id="score-container">🏆 Score: <span id="score">0</span></div>
+        <div id="streak-container">🔥 Streak: <span id="streak">0</span> (+<span id="bonus">0</span>)</div>
+    </div>
+
+    <script>
+        // Game State
+        let images = []; // Array of image filenames
+        let answers = []; // Array of truth values (0=real, 1=fake)
+        let currentIndex = 0; // Current image index
+        let score = 0; // Total score
+        let streak = 0; // Current streak
+        let bonus = 0; // Current streak bonus
+        let timer; // Timer for countdown
+        let timeRemaining = 10; // Time for each question in seconds
+        let progressBar = document.getElementById('progress-bar'); // Progress bar element
+
+        // DOM Elements
+        const gameImage = document.getElementById('game-image');
+        const overlay = document.getElementById('overlay');
+        const scoreDisplay = document.getElementById('score');
+        const streakDisplay = document.getElementById('streak');
+        const bonusDisplay = document.getElementById('bonus');
+
+        // Fetch CSV data and images from Flask backend
+        async function fetchGameData() {
+            try {
+                // Fetch CSV data
+                const csvResponse = await fetch('/api/csv-data');
+                const csvData = await csvResponse.json();
+                images = csvData.images;
+                answers = csvData.answers;
+
+                // Start the game
+                loadNextImage();
+            } catch (error) {
+                console.error('Error fetching game data:', error);
+            }
+        }
+
+        // Load the next image
+        function loadNextImage() {
+            if (currentIndex >= images.length) {
+                endGame();
+                return;
+            }
+
+            // Reset timer
+            timeRemaining = 10;
+            updateProgressBar();
+            startTimer();
+
+            // Set image source
+            gameImage.src = `/images/${images[currentIndex]}`;
+        }
+
+        // Start countdown timer
+        function startTimer() {
+            timer = setInterval(() => {
+                timeRemaining--;
+                updateProgressBar();
+                if (timeRemaining <= 0) {
+                    clearInterval(timer);
+                    checkAnswer(-1); // -1 represents no answer, i.e., time ran out
+                }
+            }, 1000);
+        }
+
+        // Update progress bar based on time remaining
+        function updateProgressBar() {
+            const progress = (timeRemaining / 10) * 100;
+            progressBar.style.width = `${progress}%`;
+        }
+
+        // Handle user input (left/right arrow keys)
+        document.addEventListener('keydown', (event) => {
+            if (event.key === 'ArrowLeft' || event.key === 'ArrowRight') {
+                const userAnswer = event.key === 'ArrowLeft' ? 1 : 0; // Left = fake (1), Right = real (0)
+                checkAnswer(userAnswer);
+            }
+        });
+
+        // Check if the user's answer is correct
+        function checkAnswer(userAnswer) {
+            const correctAnswer = answers[currentIndex];
+            const isCorrect = userAnswer === correctAnswer;
+
+            // Update score and streak if the answer was correct
+            if (userAnswer !== -1) {
+                if (isCorrect) {
+                    score += 1 + (streak * 0.1); // Base + streak bonus
+                    streak += 1;
+                } else {
+                    streak = 0;
+                }
+            }
+
+            // Update bonus
+            bonus = Math.floor(streak * 0.1 * 10) / 10; // Round to 1 decimal place
+
+            // Update UI
+            updateScoreDisplay();
+            showOverlay(isCorrect);
+
+            // Move to the next image after a delay
+            setTimeout(() => {
+                currentIndex++;
+                loadNextImage();
+            }, 500);
+        }
+
+        // Show ✔️ or ❌ overlay
+        function showOverlay(isCorrect) {
+            overlay.textContent = isCorrect === -1 ? '❌ (Time\'s Up)' : (isCorrect ? '✔️' : '❌');
+            overlay.style.display = 'flex';
+            setTimeout(() => {
+                overlay.style.display = 'none';
+            }, 500);
+        }
+
+        // Update score and streak display
+        function updateScoreDisplay() {
+            scoreDisplay.textContent = score.toFixed(1);
+            streakDisplay.textContent = streak;
+            bonusDisplay.textContent = bonus.toFixed(1);
+        }
+
+        // End the game
+        function endGame() {
+            alert(`Game Over! Your final score is ${score.toFixed(1)}`);
+            // Optionally, send the score to the backend for storage
+            fetch('/api/save-score', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ score: score }),
+            });
+        }
+
+        // Initialize the game
+        fetchGameData();
+    </script>
+</body>
+</html>
