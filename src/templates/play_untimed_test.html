@@ -14,29 +14,6 @@
             padding: 20px;
         }
 
-        #start-form {
-            margin: 20px;
-            padding: 20px;
-            background-color: white;
-            border-radius: 8px;
-            box-shadow: 0 0 10px rgba(0,0,0,0.1);
-            text-align: center;
-        }
-
-        #start-form input {
-            margin: 10px;
-            padding: 5px;
-        }
-
-        #start-form button {
-            padding: 10px 20px;
-            background-color: #4CAF50;
-            color: white;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-        }
-
         .game-container {
             background-color: white;
             padding: 30px;
@@ -45,7 +22,7 @@
             max-width: 800px;
             width: 100%;
             text-align: center;
-            display: none;
+            /* display: none; */
         }
 
         #image-container {
@@ -82,6 +59,20 @@
             transform: scale(1.05);
         }
 
+        #overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 100px;
+            background-color: rgba(255, 255, 255, 0.8);
+            display: none;
+        }
+
         #real-btn {
             background-color: #4CAF50;
             color: white;
@@ -90,6 +81,18 @@
         #fake-btn {
             background-color: #f44336;
             color: white;
+        }
+
+        #home-btn {
+            background-color: #5f8e9d;
+            color: white;
+            display: none;
+        }
+
+        #again-btn {
+            background-color: #5f8e9d;
+            color: white;
+            display: none;
         }
 
         .score-display {
@@ -110,21 +113,18 @@
     </style>
 </head>
 <body>
-    <div id="start-form">
-        <h2>How many questions?</h2>
-        <input type="number" id="num-questions" min="1" value="5">
-        <button onclick="startGameFromForm()">Start Game</button>
-    </div>
-
     <div class="game-container">
         <div class="score-display">
-            Score: <span id="score">0</span> | 
-            Points: <span id="points">0</span> | 
-            Questions Left: <span id="remaining">0</span>
+            🏆 Points: <span id="points"></span>
+            |🔥 Streak: <span id="streak"></span>
+            <span id="rem-label">| Questions Left:</span><span id="remaining"></span>
         </div>
         
         <div id="image-container">
-            <img id="game-image" class="game-image" src="" alt="Game image">
+            <img id="game-image" class="game-image" src="/static/{{ ims[0] }}" alt="Game image">
+            <button id="home-btn" class="answer-btn" onclick=goBack()>Go Back</button>
+            <button id="again-btn" class="answer-btn" onclick=playAgain()>Play Again</button>
+            <div id="overlay"></div>
         </div>
 
         <div class="button-group">
@@ -139,94 +139,92 @@
     </div>
 
     <script>
-        let currentQuestion = 0;
-        let totalQuestions = 0;
-        let score = 0;
-        let points = 0;
-        let streak = 1;
-        let currentCorrectAnswer = '';
 
+        var points = {{ points }};
+        var streak = 1;
+        var score = {{ score }};
+        var n = {{ n }};
+        var index = {{ i-1 }};
+        var answers = {{ ans | tojson}};
+        var images = {{ ims | tojson }};
+        update()
 
-
-        function startGameFromForm() {
-            const n = parseInt(document.getElementById('num-questions').value);
-            document.getElementById('start-form').style.display = 'none';
-            document.querySelector('.game-container').style.display = 'block';
-            startGame(n);
+        function update() {
+            index = index + 1;
+            document.getElementById("game-image").src = `/static/${images[index]}`;
+            document.getElementById("remaining").innerHTML = (n-index);
+            document.getElementById("points").innerHTML = points;
+            document.getElementById("streak").innerHTML = streak-1;
         }
 
-        function startGame(n) {
-            totalQuestions = n;
-            currentQuestion = 0;
-            score = 0;
-            points = 0;
-            streak = 1;
+        function bonusPoints() {
+            all = document.getElementsByClassName("game-container");
+            setTimeout(() => {overlay.style.display = 'none';}, 2000);
+            console.log("BONUS")
+            return 10;
+        }
 
-            for (let i = 0; i < ims.length; i++) {
-                let { ans, bonus } = askQuestion(ims[i], ans[i]);
-                if (ans) {
-                    points += 15 * (streak * 0.1 + 1) + bonus;
-                    streak += 1;
-                    score += 1;
-                } else {
-                    streak = 1;
+        function handleAnswer(answer) {
+            var bonus = 0;
+            
+            if (answer==answers[index]) {
+                if (answer=='1') {
+                    bonus = bonusPoints()
                 }
-                document.getElementById('remaining').textContent = n;
+
+                overlay.textContent = '✔️';
+                overlay.style.display = 'flex';
+                setTimeout(() => {overlay.style.display = 'none';}, 500);
+
+                points += 15 * (streak * 0.1 + 1) + bonus;
+                streak += 1;
+                score += 1;
+
             }
-        }
-        async function askQuestion(image, answer) {
-            console.log("RJEIRJE")
-            document.getElementById('game-image').src = `/images/${image}`;
-            currentCorrectAnswer = answer;
-            currentQuestion++;
-        }
+            else {
+                overlay.textContent = '❌';
+                overlay.style.display = 'flex';
+                setTimeout(() => {overlay.style.display = 'none';}, 500);
 
-        async function handleAnswer(userAnswer) {
-            const isCorrect = (userAnswer === currentCorrectAnswer);
-            let bonus = 0;
-
-            if (isCorrect) {
-                score++;
-                points += Math.floor(15 * (streak * 0.1 + 1));
-                streak++;
-                
-                if (currentCorrectAnswer === '1') {
-                    bonus = await handleBonusRound();
-                    points += bonus;
-                }
-            } else {
                 streak = 1;
             }
-
-            updateDisplay();
+            update()
+            
+            if (index>=n) {
+                endGame()
+                // alert(`Game Over! Final Score: ${score}/${n}\nTotal Points: ${points}`);
+            }
         }
-
-        async function handleBonusRound() {
-            return new Promise((resolve) => {
-                document.getElementById('heatmap-container').style.display = 'block';
-                document.getElementById('heatmap-image').src = document.getElementById('game-image').src;
-
-                const heatmapImage = document.getElementById('heatmap-image');
-                const onClick = () => {
-                    heatmapImage.removeEventListener('click', onClick);
-                    document.getElementById('heatmap-container').style.display = 'none';
-                    resolve(10); // Fixed bonus points from Python code
-                };
-                heatmapImage.addEventListener('click', onClick);
-            });
-        }
-
-        function updateDisplay() {
-            document.getElementById('score').textContent = score;
-            document.getElementById('points').textContent = points;
-            document.getElementById('remaining').textContent = totalQuestions - currentQuestion;
-        }
-
         function endGame() {
-            alert(`Game Over! Final Score: ${score}/${totalQuestions}\nTotal Points: ${points}`);
-            document.querySelector('.game-container').style.display = 'none';
-            document.getElementById('start-form').style.display = 'block';
+            document.getElementById("points").innerHTML = points;
+            document.getElementById("streak").innerHTML = streak-1;
+
+            document.getElementById("remaining").style.display = "none";
+            document.getElementById("rem-label").style.display = "none";
+            document.getElementById("game-image").style.display = "none";
+            document.getElementById("real-btn").style.display = "none";
+            document.getElementById("fake-btn").style.display = "none";
+
+            document.getElementById("home-btn").style.display = "block";
+            document.getElementById("again-btn").style.display = "block";
         }
+
+        function goBack() {
+            window.location.href = "/student";
+        }
+
+        function playAgain() {
+            window.location.href = "/untimed-test";
+        }
+
+        document.addEventListener('keydown', (event) => {
+            if (event.key === 'ArrowLeft' || event.key === 'ArrowRight') {
+                const userAnswer = event.key === 'ArrowLeft' ? '0' : '1'; // Right = fake (1), Left = real (0)
+                handleAnswer(userAnswer);
+            }
+        });
+
+
     </script>
 </body>
 </html>

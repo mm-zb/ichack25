@@ -175,7 +175,13 @@ def untimedTest():
     if request.method == "POST":
         n = int(request.form["number-input"])
         images, answers = randomImAns(n)
-        return render_template("play_untimed_test.html", ims=images, ans=answers)
+        return render_template("play_untimed_test.html", 
+                               ims=images, 
+                               ans=answers, 
+                               n=n, 
+                               i=0,
+                               points = 0,
+                               score = 0)
     # GET request
     return render_template('untimed_test.html')
 
