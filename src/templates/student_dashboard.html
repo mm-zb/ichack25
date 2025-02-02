@@ -5,17 +5,17 @@
     <h1 class="welcome-header">Welcome, {{ user.firstname }}!</h1>
     
     <div class="game-grid">
-        <a href="{{ url_for('game', game_id=1) }}" class="game-btn">
+        <a href="/untimed-test" class="game-btn">
             <i>🎮</i>
-            Untimed Test
+            Practice makes Perfect
         </a>
-        <a href="{{ url_for('game', game_id=2) }}" class="game-btn">
+        <a href="/timed-test" class="game-btn">
             <i>🕹️</i>
-            Timed Test
+            Beat the Clock!
         </a>
-        <a href="{{ url_for('game', game_id=3) }}" class="game-btn">
+        <a href="/match-game" class="game-btn">
             <i>👾</i>
-            Matching Game
+            Fact or Fiction
         </a>
     </div>
 {% endblock %}

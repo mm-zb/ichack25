@@ -176,9 +176,6 @@
             var bonus = 0;
             
             if (answer==answers[index]) {
-                if (answer=='1') {
-                    bonus = bonusPoints()
-                }
 
                 overlay.textContent = '✔️';
                 overlay.style.display = 'flex';
@@ -187,6 +184,10 @@
                 points += Math.floor(15 * (streak * 0.1 + 1) + bonus);
                 streak += 1;
                 score += 1;
+                
+                if (answer=='1') {
+                    bonus = bonusPoints()
+                }
 
             }
             else {
@@ -195,6 +196,10 @@
                 setTimeout(() => {overlay.style.display = 'none';}, 500);
 
                 streak = 1;
+
+                if (answer=='1') {
+                    displayHeatmap()
+                }
             }
             update()
             
@@ -203,6 +208,11 @@
                 // alert(`Game Over! Final Score: ${score}/${n}\nTotal Points: ${points}`);
             }
         }
+
+        function displayHeatmap() {
+            
+        }
+
         function endGame() {
             document.getElementById("points").innerHTML = points;
             document.getElementById("streak").innerHTML = streak-1;
