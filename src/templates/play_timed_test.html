@@ -10,7 +10,7 @@
             display: flex;
             flex-direction: column;
             align-items: center;
-            background-color: #f0f0f0;
+            background-color: #4e67eb;
             padding: 20px;
         }
 
@@ -22,7 +22,27 @@
             max-width: 800px;
             width: 100%;
             text-align: center;
-            /* display: none; */
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 80vh;
+        }
+
+        #progress-bar-container {
+            width: 100%;
+            height: 10px;
+            background-color: green;
+            border-radius: 5px;
+            overflow: hidden;
+            margin-top: 10px;
+        }
+
+        #progress-bar {
+            height: 100%;
+            width: 0%;
+            background-color:white;
+            transition: width 5s linear;
         }
 
         #image-container {
@@ -83,32 +103,56 @@
             color: white;
         }
 
-        #home-btn {
-            background-color: #5f8e9d;
-            color: white;
+        /* Hide elements during endgame */
+        .endgame-hide {
             display: none;
         }
 
-        #again-btn {
-            background-color: #5f8e9d;
-            color: white;
+        /* Final score display */
+        #final-score {
+            font-size: 60px;
+            font-weight: bold;
+            color: #4CAF50;
             display: none;
+            margin: 40px 0;
         }
 
-        .score-display {
-            font-size: 20px;
+        /* Post-game summary screen styles */
+        .summary-screen {
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            width: 100%;
+            height: 100%;
+        }
+
+        .summary-screen h1 {
+            font-size: 60px;
             margin: 20px 0;
         }
 
-        #heatmap-container {
-            margin-top: 20px;
-            display: none;
+        .summary-screen .buttons {
+            display: flex;
+            gap: 20px;
+            margin-top: 40px;
         }
 
-        #heatmap-image {
-            max-width: 100%;
-            border-radius: 8px;
-            cursor: crosshair;
+        /* Make buttons bigger */
+        #home-btn, #again-btn {
+            background-color: #5f8e9d;
+            color: white;
+            display: none;
+            padding: 20px 40px;
+            font-size: 20px;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+
+        #home-btn:hover, #again-btn:hover {
+            transform: scale(1.05);
         }
     </style>
 </head>
@@ -119,94 +163,124 @@
             |🔥 Streak: <span id="streak"></span>
             <span id="rem-label">| Questions Left: </span><span id="remaining"></span>
         </div>
-        
+
+        <!-- Streak bonus points display -->
+        <div id="streak-bonus" class="streak-bonus"></div>
+
+        <div id="progress-bar-container">
+            <div id="progress-bar"></div>
+        </div>
+
         <div id="image-container">
             <img id="game-image" class="game-image" src="/static/{{ ims[0] }}" alt="Game image">
-            <button id="home-btn" class="answer-btn" onclick=goBack()>Go Back</button>
-            <button id="again-btn" class="answer-btn" onclick=playAgain()>Play Again</button>
             <div id="overlay"></div>
         </div>
+
+        <!-- Final score display -->
+        <div id="final-score">Final Score: <span id="final-score-value"></span></div>
 
         <div class="button-group">
             <button id="real-btn" class="answer-btn" onclick="handleAnswer('0')">Real</button>
             <button id="fake-btn" class="answer-btn" onclick="handleAnswer('1')">Fake</button>
         </div>
 
-        <div id="heatmap-container">
-            <h3>Bonus Round! Click on the heatmap:</h3>
-            <img id="heatmap-image" src="" alt="Heatmap">
+        <!-- Post-game summary screen -->
+        <div class="summary-screen">
+            <h1>🎉 <span id="summary-points"></span> Points 🏆</h1>
+            <div class="buttons">
+                <button id="home-btn" class="answer-btn" onclick="goBack()">Go Back</button>
+                <button id="again-btn" class="answer-btn" onclick="playAgain()">Play Again</button>
+            </div>
         </div>
     </div>
 
     <script>
-
         var points = {{ points }};
         var streak = 1;
         var score = {{ score }};
         var n = {{ n }};
         var index = {{ i-1 }};
-        var answers = {{ ans | tojson}};
+        var answers = {{ ans | tojson }};
         var images = {{ ims | tojson }};
-        update()
+        var timer;
+
+        update();
 
         function update() {
-            index = index + 1;
+            index += 1;
+            if (index >= n) {
+                endGame();
+                return;
+            }
             document.getElementById("game-image").src = `/static/${images[index]}`;
-            document.getElementById("remaining").innerHTML = (n-index);
+            document.getElementById("remaining").innerHTML = (n - index);
             document.getElementById("points").innerHTML = points;
-            document.getElementById("streak").innerHTML = streak-1;
+            document.getElementById("streak").innerHTML = streak - 1;
+            
+            resetTimer();
         }
 
-        function bonusPoints() {
-            all = document.getElementsByClassName("game-container");
-            setTimeout(() => {overlay.style.display = 'none';}, 2000);
-            console.log("BONUS")
-            return 10;
+        function resetTimer() {
+            clearTimeout(timer);
+            document.getElementById("progress-bar").style.transition = "none";
+            document.getElementById("progress-bar").style.width = "0%";
+            setTimeout(() => {
+                document.getElementById("progress-bar").style.transition = "width 5s linear";
+                document.getElementById("progress-bar").style.width = "100%";
+            }, 10);
+            timer = setTimeout(() => handleAnswer(answers[index] === '0' ? '1' : '0'), 5000);
         }
 
         function handleAnswer(answer) {
-            var bonus = 0;
-            
-            if (answer==answers[index]) {
-                if (answer=='1') {
-                    bonus = bonusPoints()
-                }
+            clearTimeout(timer);
+            var correct = answer == answers[index];
+            overlay.textContent = correct ? '✔️' : '❌';
+            overlay.style.display = 'flex';
+            setTimeout(() => { overlay.style.display = 'none'; }, 500);
 
-                overlay.textContent = '✔️';
-                overlay.style.display = 'flex';
-                setTimeout(() => {overlay.style.display = 'none';}, 500);
-
-                points += 15 * (streak * 0.1 + 1) + bonus;
-                streak += 1;
+            if (correct) {
+                var basePoints = 15;
+                var bonusPoints = Math.round(15 * (streak * 0.1));
+                var totalPoints = basePoints + bonusPoints;
+                points += totalPoints;
                 score += 1;
 
-            }
-            else {
-                overlay.textContent = '❌';
-                overlay.style.display = 'flex';
-                setTimeout(() => {overlay.style.display = 'none';}, 500);
+                if (streak > 1) {
+                    document.getElementById("streak-bonus").textContent = `🔥${totalPoints} (+${bonusPoints} Streak Bonus)`;
+                    document.getElementById("streak-bonus").style.display = "block";
+                    setTimeout(() => {
+                        document.getElementById("streak-bonus").style.display = "none";
+                    }, 2000);
+                }
 
+                streak += 1;
+            } else {
                 streak = 1;
             }
-            update()
-            
-            if (index>=n) {
-                endGame()
-                // alert(`Game Over! Final Score: ${score}/${n}\nTotal Points: ${points}`);
-            }
-        }
-        function endGame() {
-            document.getElementById("points").innerHTML = points;
-            document.getElementById("streak").innerHTML = streak-1;
 
-            document.getElementById("remaining").style.display = "none";
-            document.getElementById("rem-label").style.display = "none";
+            update();
+        }
+
+        function endGame() {
+            // Hide unnecessary elements
+            document.querySelector(".score-display").classList.add("endgame-hide");
+            document.getElementById("streak-bonus").style.display = "none";
             document.getElementById("game-image").style.display = "none";
+            document.getElementById("image-container").style.display = "none";
             document.getElementById("real-btn").style.display = "none";
             document.getElementById("fake-btn").style.display = "none";
+            document.getElementById("progress-bar-container").style.display = "none";
 
-            document.getElementById("home-btn").style.display = "block";
-            document.getElementById("again-btn").style.display = "block";
+            // Show summary screen
+            document.querySelector(".summary-screen").style.display = "flex";
+            document.getElementById("summary-points").textContent = points;
+
+            // Show buttons
+            document.getElementById("home-btn").style.display = "inline-block";
+            document.getElementById("again-btn").style.display = "inline-block";
+
+            // Deactivate keyboard triggers
+            document.removeEventListener('keydown', handleKeyDown);
         }
 
         function goBack() {
@@ -214,17 +288,17 @@
         }
 
         function playAgain() {
-            window.location.href = "/untimed-test";
+            window.location.href = "/timed-test";
         }
 
-        document.addEventListener('keydown', (event) => {
+        function handleKeyDown(event) {
             if (event.key === 'ArrowLeft' || event.key === 'ArrowRight') {
-                const userAnswer = event.key === 'ArrowLeft' ? '0' : '1'; // Right = fake (1), Left = real (0)
-                handleAnswer(userAnswer);
+                handleAnswer(event.key === 'ArrowLeft' ? '0' : '1');
             }
-        });
+        }
 
-
+        // Add the event listener for keyboard inputs
+        document.addEventListener('keydown', handleKeyDown);
     </script>
 </body>
 </html>

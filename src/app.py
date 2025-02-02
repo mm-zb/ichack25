@@ -184,21 +184,18 @@ def untimedTest():
     # GET request
     return render_template('untimed_test.html')
 
-@app.route('/timed-test', methods=['GET', 'POST'])
+@app.route('/timed-test')
 @login_required
 def timedTest():
-    if request.method == "POST":
-        n = int(request.form["number-input"])
-        images, answers = randomImAns(n)
-        return render_template("play_timed_test.html", 
-                               ims=images, 
-                               ans=answers, 
-                               n=n, 
-                               i=0,
-                               points = 0,
-                               score = 0)
-    # GET request
-    return render_template('timed_test.html')
+    n = 10  # Automatically set to 10 questions
+    images, answers = randomImAns(n)
+    return render_template("play_timed_test.html", 
+                           ims=images, 
+                           ans=answers, 
+                           n=n, 
+                           i=0,
+                           points=0,
+                           score=0)
 
 @app.route('/leaderboard')
 @login_required
