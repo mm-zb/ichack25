@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Real or Fake Game</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            background-color: #f0f0f0;
+            padding: 20px;
+        }
+
+        #start-form {
+            margin: 20px;
+            padding: 20px;
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+            text-align: center;
+        }
+
+        #start-form input {
+            margin: 10px;
+            padding: 5px;
+        }
+
+        #start-form button {
+            padding: 10px 20px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        .game-container {
+            background-color: white;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+            max-width: 800px;
+            width: 100%;
+            text-align: center;
+            display: none;
+        }
+
+        #image-container {
+            margin: 20px 0;
+            min-height: 400px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .game-image {
+            max-width: 100%;
+            max-height: 400px;
+            border-radius: 8px;
+            box-shadow: 0 0 5px rgba(0,0,0,0.2);
+        }
+
+        .button-group {
+            margin: 20px 0;
+        }
+
+        .answer-btn {
+            padding: 15px 30px;
+            margin: 0 10px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: bold;
+            transition: transform 0.2s;
+        }
+
+        .answer-btn:hover {
+            transform: scale(1.05);
+        }
+
+        #real-btn {
+            background-color: #4CAF50;
+            color: white;
+        }
+
+        #fake-btn {
+            background-color: #f44336;
+            color: white;
+        }
+
+        .score-display {
+            font-size: 20px;
+            margin: 20px 0;
+        }
+
+        #heatmap-container {
+            margin-top: 20px;
+            display: none;
+        }
+
+        #heatmap-image {
+            max-width: 100%;
+            border-radius: 8px;
+            cursor: crosshair;
+        }
+    </style>
+</head>
+<body>
+    <div id="start-form">
+        <h2>How many questions?</h2>
+        <input type="number" id="num-questions" min="1" value="5">
+        <button onclick="startGameFromForm()">Start Game</button>
+    </div>
+
+    <div class="game-container">
+        <div class="score-display">
+            Score: <span id="score">0</span> | 
+            Points: <span id="points">0</span> | 
+            Questions Left: <span id="remaining">0</span>
+        </div>
+        
+        <div id="image-container">
+            <img id="game-image" class="game-image" src="" alt="Game image">
+        </div>
+
+        <div class="button-group">
+            <button id="real-btn" class="answer-btn" onclick="handleAnswer('0')">Real</button>
+            <button id="fake-btn" class="answer-btn" onclick="handleAnswer('1')">Fake</button>
+        </div>
+
+        <div id="heatmap-container">
+            <h3>Bonus Round! Click on the heatmap:</h3>
+            <img id="heatmap-image" src="" alt="Heatmap">
+        </div>
+    </div>
+
+    <script>
+        let currentQuestion = 0;
+        let totalQuestions = 0;
+        let score = 0;
+        let points = 0;
+        let streak = 1;
+        let currentCorrectAnswer = '';
+
+
+
+        function startGameFromForm() {
+            const n = parseInt(document.getElementById('num-questions').value);
+            document.getElementById('start-form').style.display = 'none';
+            document.querySelector('.game-container').style.display = 'block';
+            startGame(n);
+        }
+
+        function startGame(n) {
+            totalQuestions = n;
+            currentQuestion = 0;
+            score = 0;
+            points = 0;
+            streak = 1;
+
+            for (let i = 0; i < ims.length; i++) {
+                let { ans, bonus } = askQuestion(ims[i], ans[i]);
+                if (ans) {
+                    points += 15 * (streak * 0.1 + 1) + bonus;
+                    streak += 1;
+                    score += 1;
+                } else {
+                    streak = 1;
+                }
+                document.getElementById('remaining').textContent = n;
+            }
+        }
+        async function askQuestion(image, answer) {
+            console.log("RJEIRJE")
+            document.getElementById('game-image').src = `/images/${image}`;
+            currentCorrectAnswer = answer;
+            currentQuestion++;
+        }
+
+        async function handleAnswer(userAnswer) {
+            const isCorrect = (userAnswer === currentCorrectAnswer);
+            let bonus = 0;
+
+            if (isCorrect) {
+                score++;
+                points += Math.floor(15 * (streak * 0.1 + 1));
+                streak++;
+                
+                if (currentCorrectAnswer === '1') {
+                    bonus = await handleBonusRound();
+                    points += bonus;
+                }
+            } else {
+                streak = 1;
+            }
+
+            updateDisplay();
+        }
+
+        async function handleBonusRound() {
+            return new Promise((resolve) => {
+                document.getElementById('heatmap-container').style.display = 'block';
+                document.getElementById('heatmap-image').src = document.getElementById('game-image').src;
+
+                const heatmapImage = document.getElementById('heatmap-image');
+                const onClick = () => {
+                    heatmapImage.removeEventListener('click', onClick);
+                    document.getElementById('heatmap-container').style.display = 'none';
+                    resolve(10); // Fixed bonus points from Python code
+                };
+                heatmapImage.addEventListener('click', onClick);
+            });
+        }
+
+        function updateDisplay() {
+            document.getElementById('score').textContent = score;
+            document.getElementById('points').textContent = points;
+            document.getElementById('remaining').textContent = totalQuestions - currentQuestion;
+        }
+
+        function endGame() {
+            alert(`Game Over! Final Score: ${score}/${totalQuestions}\nTotal Points: ${points}`);
+            document.querySelector('.game-container').style.display = 'none';
+            document.getElementById('start-form').style.display = 'block';
+        }
+    </script>
+</body>
+</html>

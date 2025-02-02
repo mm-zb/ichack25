@@ -1,3 +1,5 @@
+from untimedTest import *
+
 from flask import Flask, render_template, redirect, url_for, request, session
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager, UserMixin, login_user, login_required, logout_user, current_user
@@ -5,9 +7,9 @@ from werkzeug.security import generate_password_hash, check_password_hash
 from io import BytesIO
 from flask import send_file
 from flask_caching import Cache
+from flask import send_from_directory, jsonify, session
 import matplotlib
 import matplotlib.pyplot as plt
-import seaborn as sns
 matplotlib.use('Agg')
 
 app = Flask(__name__)
@@ -166,11 +168,17 @@ def student_dashboard():
         return redirect(url_for('login'))
     return render_template('student_dashboard.html')
 
-# Placeholder routes
-@app.route('/game/<int:game_id>')
+
+@app.route('/untimed-test', methods=['GET', 'POST'])
 @login_required
-def game(game_id):
-    return f"Game {game_id} placeholder"
+def untimedTest():
+    if request.method == "POST":
+        n = int(request.form["number-input"])
+        images, answers = randomImAns(n)
+        return render_template("play_untimed_test.html", ims=images, ans=answers)
+    # GET request
+    return render_template('untimed_test.html')
+
 
 @app.route('/leaderboard')
 @login_required
