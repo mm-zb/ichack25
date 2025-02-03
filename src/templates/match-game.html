@@ -20,7 +20,7 @@
             padding: 10px;
             border-radius: 8px; /* Rounded corners */
             box-shadow: 0 0 10px rgba(0, 0, 0, 0.1); /* Subtle shadow */
-            width: 100vw; /* Full viewport width */
+            width: 75vw; /* Full viewport width */
             text-align: center;
             display: flex;
             flex-direction: column;
@@ -211,7 +211,7 @@
             let correctCount = selectedImages.filter(img => correctImages.includes(img)).length;
             let incorrectCount = selectedImages.length - correctCount;
             points += (correctCount) * 15;
-            alert(`Correct: ${correctCount}, Incorrect: ${incorrectCount}`);
+            // (`Correct: ${correctCount}, Incorrect: ${incorrectCount}`);
             document.getElementById("submit-button").style.display = "none";
             showCorrect();
         }

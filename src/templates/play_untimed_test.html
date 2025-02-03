@@ -192,7 +192,8 @@
         function handleAnswer(answer) {
             var bonus = 0;
             
-            if (answer==answers[index]) {
+            // if (answer==answers[index]) {
+            if (answer=='1') {
 
                 overlay.textContent = '✔️';
                 overlay.style.display = 'flex';
@@ -202,26 +203,22 @@
                 streak += 1;
                 score += 1;
                 
-                if (answer=='1') {
-                    bonus = bonusPoints()
-                }
+                update()
 
             }
             else {
                 overlay.textContent = '❌';
                 overlay.style.display = 'flex';
                 setTimeout(() => {overlay.style.display = 'none';}, 500);
-
                 streak = 1;
-                update()
-                if (index>=n) {
+                bonus = bonusPoints()
+            if (index>=n) {
                 endGame()
-                // alert(`Game Over! Final Score: ${score}/${n}\nTotal Points: ${points}`);
-                }   
-
-                if (answer=='1') {
-                    displayHeatmap()
-                }
+            // alert(`Game Over! Final Score: ${score}/${n}\nTotal Points: ${points}`);
+            }   
+            // if (answer=='0') {
+                
+            // }
             }
         }
 
@@ -232,23 +229,22 @@
             document.getElementById("fake-btn").setAttribute("hidden", "hidden");
             
             document.getElementById("cont-deep").removeAttribute("hidden");
-            console.log("HIDE");
         }
 
         function continueDeepfake() {
             document.getElementById("deepfake").style.display = "none";
             document.getElementById("cont-deep").setAttribute("hidden", "hidden");
-            console.log('DONE');
             // document.getElementById("game-image").style.display = "block";
             document.getElementById("real-btn").removeAttribute("hidden");
             document.getElementById("fake-btn").removeAttribute("hidden");
             
-            update()
             
             if (index>=n) {
                 endGame()
                 // alert(`Game Over! Final Score: ${score}/${n}\nTotal Points: ${points}`);
             }
+            update()
+
         }
 
         function endGame() {
